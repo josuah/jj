@@ -48,7 +48,18 @@ function gmtime(sec, tm)
 	tm["sec"] = sec
 }
 
-BEGIN { FS=" " } {
+BEGIN { FS=" " }
+
+# Handle some tail(1) implementation that can follow multiple files
+# and print a header "==> filename <==" when the file printed changes.
+$1 == "==>" {
+	sub("/channel/", " ")
+	sub(".log", "")
+	sub(".*/", "==> ")
+	printf "\n%s", $0
+}
+
+{
 	if (NF < 2) {
 		printf "\n%s", $0
 		next
@@ -114,4 +125,6 @@ BEGIN { FS=" " } {
 
 	printf "\n\033[%sm%s\033[0m \033[%sm%10s\033[0m: %s",
 		dcolor, time, ncolor, nick, msg
-} END { print "" }
+}
+
+END { print "" }
